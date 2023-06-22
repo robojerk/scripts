@@ -1,0 +1,1 @@
+/opt/jellyfin/upgrade.sh
