@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Uncomment the ffmpeg line to install and update ffmpeg portable.
+# This script will upgrade the "Generic Linux" version of Jellyfin, and upgrade the portable jellyfin-ffmpeg portable if requested.
+
+# Uncomment the ffmpeg line if you do NOT want to install and update ffmpeg portable.
 install_path=/opt/jellyfin
 #ffmpeg=skip
 
