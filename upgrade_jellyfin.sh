@@ -77,7 +77,7 @@ UpgradeJellyfinFfmpegPortable () {
     rm jellyfin-ffmpeg_"$ffmpeg_newversion"_portable_linux64-gpl.tar.xz*
     
     # Edit version file and notify user upgrade was successful
-    sed -i "s/ffmpeg=$ffmpeg_oldversion/jellyfin=$ffmpeg_newversion/g" ./version && \
+    sed -i "s/ffmpeg=$ffmpeg_oldversion/ffmpeg=$ffmpeg_newversion/g" ./version && \
     echo "Upgraded from $ffmpeg_oldversion to $ffmpeg_newversion."
 }
 
