@@ -48,7 +48,7 @@ UpgradeJellyfinGenericLinux () {
     sudo systemctl start jellyfin.service && \
 
     # Edit version file and notify user upgrade was successful
-    sed -i "s/ffmpeg=$jellyfin_oldversion/jellyfin=$jellyfin_newversion/g" ./version && \
+    sed -i "s/jellyfin=$jellyfin_oldversion/jellyfin=$jellyfin_newversion/g" ./version && \
     echo "Upgraded from $jellyfin_oldversion to $jellyfin_newversion."
 }
 
