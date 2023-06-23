@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# This script can be used to install from scratch.
 # Uncomment the ffmpeg line to install and update ffmpeg portable.
 install_path=/opt/jellyfin
 #ffmpeg=skip
