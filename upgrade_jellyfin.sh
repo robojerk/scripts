@@ -48,7 +48,7 @@ UpgradeJellyfinGenericLinux () {
 }
 
 UpgradeJellyfinFfmpegPortable () {
-    if [ffmpeg == skip]; then return; fi
+    if [["$ffmpeg" == "skip"]]; then return; fi
 
     # Get latest version number of jellyfin-ffmpeg6 from download site
     ffmpeg_newversion=$(wget --quiet -O - https://repo.jellyfin.org/releases/ffmpeg/ | sed -e 's/<a href="//' -e 's/\/.*//g' -e '/^[^0-9]/d' | tail -1)
@@ -61,19 +61,20 @@ UpgradeJellyfinFfmpegPortable () {
     echo "You're using the latest version at $ffmpeg_oldversion."
     return
     fi
-
+    
+    mkdir -p $install_path/jellyfin-ffmpeg6 && \
+    
     # Download ffmpeg and sha256sum, then compare
     wget https://repo.jellyfin.org/releases/ffmpeg/"$ffmpeg_newversion"/jellyfin-ffmpeg_"$ffmpeg_newversion"_portable_linux64-gpl.tar.xz && \
     wget https://repo.jellyfin.org/releases/ffmpeg/"$ffmpeg_newversion"/jellyfin-ffmpeg_"$ffmpeg_newversion"_portable_linux64-gpl.tar.xz.sha256sum && \
     sha256sum -c --quiet jellyfin-ffmpeg_"$ffmpeg_newversion"_portable_linux64-gpl.tar.xz.sha256sum && \
 
     # Extract binaries
-    mkdir -p jellyfin-ffmpeg6 && \
-    bsdtar --strip-components=1 -xf jellyfin-ffmpeg_"$ffmpeg_newversion"_portable_linux64-gpl.tar.xz && \
+    bsdtar -xf jellyfin-ffmpeg_"$ffmpeg_newversion"_portable_linux64-gpl.tar.xz -C $install_path/jellyfin-ffmpeg6 && \
     
     # Cleanup downloaded files
     rm jellyfin-ffmpeg_"$ffmpeg_newversion"_portable_linux64-gpl.tar.xz*
-
+    
     # Edit version file and notify user upgrade was successful
     sed -i "s/ffmpeg=$ffmpeg_oldversion/jellyfin=$ffmpeg_newversion/g" ./version && \
     echo "Upgraded from $ffmpeg_oldversion to $ffmpeg_newversion."
