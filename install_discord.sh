@@ -1,6 +1,6 @@
 #!/bin/bash
 # Discord Installer for Immutable Distros (User-Local)
-# Installs Discord into ~/.local/opt/Discord, creates desktop entry with ICO or PNG icon, and optional symlink.
+# Installs Discord into ~/.local/opt/Discord, creates desktop entry, copies PNG icon to user’s icon directory, and optional symlink.
 # Designed for immutable systems — no modification of /usr/bin or package manager.
 #
 # Features:
@@ -9,7 +9,7 @@
 # - Secure permissions allowing self-updates
 # - Auto Wayland detection
 # - Optional /usr/local/bin symlink (if writable)
-# - Uses ICO icon if available, falls back to PNG or generic icon name
+# - Copies discord.png to ~/.local/share/icons and uses Icon=discord in .desktop file
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -18,6 +18,8 @@ INSTALL_DIR="$HOME/.local/opt/Discord"
 TEMP_FILE="$(mktemp /tmp/discord.XXXXXX.tar.gz)"
 DOWNLOAD_URL="https://discord.com/api/download?platform=linux&format=tar.gz"
 DESKTOP_FILE="$HOME/.local/share/applications/discord.desktop"
+ICON_DIR="$HOME/.local/share/icons"
+ICON_FILE="$ICON_DIR/discord.png"
 APP_NAME="Discord"
 
 cleanup() {
@@ -65,25 +67,29 @@ fi
 echo "🔒 Setting permissions..."
 chmod -R u+rwX,go+rX "$INSTALL_DIR"
 
+# Copy PNG icon to user’s icon directory
+if [ -f "$INSTALL_DIR/discord.png" ]; then
+    echo "🖼️ Copying PNG icon to $ICON_FILE..."
+    mkdir -p "$ICON_DIR"
+    cp "$INSTALL_DIR/discord.png" "$ICON_FILE" || {
+        echo "⚠️ Failed to copy PNG icon to $ICON_FILE."
+    }
+    chmod u+rwX,go+rX "$ICON_FILE" 2>/dev/null || true
+    ICON="discord"
+else
+    echo "⚠️ PNG icon not found at $INSTALL_DIR/discord.png, using generic icon name."
+    ICON="discord"
+fi
+
 # Create .desktop entry
 mkdir -p "$(dirname "$DESKTOP_FILE")"
 if [ -f "$INSTALL_DIR/discord.desktop" ]; then
     echo "🖥️ Installing provided desktop entry..."
     cp "$INSTALL_DIR/discord.desktop" "$DESKTOP_FILE"
+    # Update Icon field in provided desktop file to use 'discord'
+    sed -i "s|^Icon=.*|Icon=$ICON|" "$DESKTOP_FILE"
 else
     echo "⚙️ Creating desktop entry..."
-    # Determine icon file (prefer ICO, then PNG, then generic name)
-    if [ -f "$INSTALL_DIR/discord.ico" ]; then
-        ICON="$INSTALL_DIR/discord.ico"
-        echo "🖼️ Using ICO icon: $ICON"
-    elif [ -f "$INSTALL_DIR/discord.png" ]; then
-        ICON="$INSTALL_DIR/discord.png"
-        echo "🖼️ Using PNG icon: $ICON"
-    else
-        ICON="discord"
-        echo "⚠️ No ICO or PNG icon found, using generic icon name: $ICON"
-    fi
-
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Name=Discord
@@ -111,8 +117,9 @@ else
     echo "⚠️ /usr/local/bin not writable — skipping symlink."
 fi
 
-# Update desktop database (if available)
+# Update desktop database and icon cache (if available)
 update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+gtk-update-icon-cache "$HOME/.local/share/icons" 2>/dev/null || true
 
 echo "✅ Discord installed successfully!"
 echo "Run it via your app menu or with: $INSTALL_DIR/Discord"
